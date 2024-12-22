@@ -1,9 +1,9 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
-import { User } from "../models/user.model.js";
-import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -85,14 +85,14 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
+  const { emailOrUsername, password } = req.body;
 
-  if (!(username || email)) {
-    throw new ApiError(400, "username or email is required");
+  if (!emailOrUsername || !password) {
+    throw new ApiError(400, "Email/Username and Password are required");
   }
 
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
   });
 
   if (!user) {
@@ -302,12 +302,12 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 });
 
 export {
-  registerUser,
+  changeCurrentPassword,
+  getCurrentUser,
   loginUser,
   logoutUser,
   refreshAccessToken,
-  changeCurrentPassword,
-  getCurrentUser,
+  registerUser,
   updateAccountDetails,
   updateUserAvatar,
 };
