@@ -32,12 +32,15 @@ const publishVideo = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Failed to upload thumbnail file");
   }
 
+  const userId = req.user?._conditions?._id;
+
   const newVideo = await Video.create({
     title,
     description,
     videoFile: uploadedVideo.url,
     thumbnail: uploadedThumbnail.url,
     duration: uploadedVideo.duration,
+    owner: userId,
   });
 
   return res
@@ -45,4 +48,45 @@ const publishVideo = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, newVideo, "Video created successfully"));
 });
 
-export { publishVideo };
+const getAllVideos = asyncHandler(async (req, res) => {
+  const videos = await Video.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    },
+    {
+      $project: {
+        title: 1,
+        videoFile: 1,
+        thumbnail: 1,
+        description: 1,
+        duration: 1,
+        views: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        "ownerDetails._id": 1,
+        "ownerDetails.username": 1,
+        "ownerDetails.email": 1,
+        "ownerDetails.avatar": 1,
+      },
+    },
+    { $sort: { createdAt: -1 } },
+  ]);
+
+  if (!videos.length) {
+    throw new ApiError(404, "No videos found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videos, "Videos fetched successfully"));
+});
+
+export { getAllVideos, publishVideo };
