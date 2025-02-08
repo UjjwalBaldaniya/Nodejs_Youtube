@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -89,4 +90,55 @@ const getAllVideos = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, videos, "Videos fetched successfully"));
 });
 
-export { getAllVideos, publishVideo };
+const getVideoById = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!videoId) {
+    throw ApiError(400, "Invalid video ID format");
+  }
+
+  const videoById = await Video.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(videoId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    },
+    {
+      $project: {
+        title: 1,
+        videoFile: 1,
+        thumbnail: 1,
+        description: 1,
+        duration: 1,
+        views: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        "ownerDetails._id": 1,
+        "ownerDetails.username": 1,
+        "ownerDetails.email": 1,
+        "ownerDetails.avatar": 1,
+      },
+    },
+  ]);
+
+  if (!videoById.length) {
+    throw ApiError(404, "Video not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videoById[0], "Video fetched successfully"));
+});
+
+export { getAllVideos, getVideoById, publishVideo };

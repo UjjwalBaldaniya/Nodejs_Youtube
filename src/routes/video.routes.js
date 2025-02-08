@@ -1,4 +1,8 @@
-import { getAllVideos, publishVideo } from "../controllers/video.controller.js";
+import {
+  getAllVideos,
+  getVideoById,
+  publishVideo,
+} from "../controllers/video.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -24,5 +28,7 @@ router
     publishVideo
   )
   .get(getAllVideos);
+
+router.route("/:videoId").get(getVideoById);
 
 export default router;
