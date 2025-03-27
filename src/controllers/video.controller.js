@@ -184,4 +184,40 @@ const getVideoById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, videoById[0], "Video fetched successfully"));
 });
 
-export { getAllVideos, getVideoById, publishVideo };
+const updateVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  if (!videoId) {
+    throw ApiError(400, "Invalid video ID format");
+  }
+
+  const { title, description } = req.body;
+  if (!title?.trim() || !description?.trim()) {
+    throw new ApiError(400, "Title and description are required");
+  }
+
+  const localFilePath = req.file?.path;
+  if (!localFilePath) {
+    throw new ApiError(400, "thumbnail is missing");
+  }
+
+  const thumbnail = await uploadOnCloudinary(localFilePath);
+  if (!thumbnail?.url) {
+    throw new ApiError(400, "Error while uploading the image");
+  }
+
+  const updatedVideo = await Video.findOneAndUpdate(
+    { _id: videoId },
+    { $set: { title, description, thumbnail: thumbnail.url } },
+    { new: true }
+  ).populate("owner", "username email avatar");
+
+  if (!updatedVideo) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedVideo, "Video updated successfully"));
+});
+
+export { getAllVideos, getVideoById, publishVideo, updateVideo };
