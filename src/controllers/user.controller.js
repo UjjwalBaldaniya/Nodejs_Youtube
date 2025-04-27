@@ -306,7 +306,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
   if (!username?.trim()) {
-    throw ApiError(400, "Username is not exists");
+    throw new ApiError(400, "Username is not exists");
   }
 
   const channel = await User.aggregate([

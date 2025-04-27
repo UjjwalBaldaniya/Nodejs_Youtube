@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import errorHandler from "./middlewares/errorHandler.middleware.js";
 
 const app = express();
 
@@ -29,5 +30,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/comment", commentRouter);
+
+app.use(errorHandler);
 
 export default app;

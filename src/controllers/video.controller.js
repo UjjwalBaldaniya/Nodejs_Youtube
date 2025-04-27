@@ -137,7 +137,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
 
   if (!videoId) {
-    throw ApiError(400, "Invalid video ID format");
+    throw new ApiError(400, "Invalid video ID format");
   }
 
   const videoById = await Video.aggregate([
@@ -176,7 +176,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   ]);
 
   if (!videoById.length) {
-    throw ApiError(404, "Video not found");
+    throw new ApiError(404, "Video not found");
   }
 
   return res
@@ -187,7 +187,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   if (!videoId) {
-    throw ApiError(400, "Invalid video ID format");
+    throw new ApiError(400, "Invalid video ID format");
   }
 
   const { title, description } = req.body;
